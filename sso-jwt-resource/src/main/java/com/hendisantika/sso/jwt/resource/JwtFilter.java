@@ -1,12 +1,11 @@
 package com.hendisantika.sso.jwt.resource;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -20,10 +19,9 @@ import java.io.IOException;
  * To change this template use File | Settings | File Templates.
  */
 
-@Component
 public class JwtFilter extends OncePerRequestFilter {
     private static final String jwtTokenCookieName = "JWT-TOKEN";
-    private static final String signingKey = "signingKey";
+    private static final String signingKey = "sso-jwt-demo-signing-key-must-be-at-least-256-bits";
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {

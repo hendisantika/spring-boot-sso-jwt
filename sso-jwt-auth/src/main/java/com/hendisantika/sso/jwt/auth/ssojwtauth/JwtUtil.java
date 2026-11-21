@@ -1,10 +1,11 @@
 package com.hendisantika.sso.jwt.auth.ssojwtauth;
 
-import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 /**
@@ -18,21 +19,30 @@ import java.util.Date;
  * To change this template use File | Settings | File Templates.
  */
 public class JwtUtil {
-    public static String generateToken(String signingKey, String subject) {
-        long nowMillis = System.currentTimeMillis();
-        Date now = new Date(nowMillis);
-
-        JwtBuilder builder = Jwts.builder()
-                .setSubject(subject)
-                .setIssuedAt(now)
-                .signWith(SignatureAlgorithm.HS256, signingKey);
-
-        return builder.compact();
+    private JwtUtil() {
     }
 
-    public static String getSubject(HttpServletRequest httpServletRequest, String jwtTokenCookieName, String signingKey){
+    private static SecretKey key(String signingKey) {
+        // HS256 requires a key of at least 256 bits (32 bytes)
+        return Keys.hmacShaKeyFor(signingKey.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static String generateToken(String signingKey, String subject) {
+        return Jwts.builder()
+                .subject(subject)
+                .issuedAt(new Date())
+                .signWith(key(signingKey), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public static String getSubject(HttpServletRequest httpServletRequest, String jwtTokenCookieName, String signingKey) {
         String token = CookieUtil.getValue(httpServletRequest, jwtTokenCookieName);
-        if(token == null) return null;
-        return Jwts.parser().setSigningKey(signingKey).parseClaimsJws(token).getBody().getSubject();
+        if (token == null) return null;
+        return Jwts.parser()
+                .verifyWith(key(signingKey))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 }
