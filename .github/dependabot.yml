@@ -1,17 +1,59 @@
 version: 2
-updates:
-  - package-ecosystem: maven
-    directory: "/sso-jwt-resource"
-    schedule:
-      interval: daily
-      time: '21:00'
-      timezone: Asia/Jakarta
-    open-pull-requests-limit: 10
 
+updates:
+  # Maven: root aggregator pom (Spring Boot parent, jjwt version) + both modules
   - package-ecosystem: maven
-    directory: "/sso-jwt"
+    directories:
+      - "/"
+      - "/sso-jwt-auth"
+      - "/sso-jwt-resource"
     schedule:
       interval: daily
       time: '21:00'
       timezone: Asia/Jakarta
     open-pull-requests-limit: 10
+    target-branch: master
+    labels:
+      - dependencies
+      - java
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: scope
+    groups:
+      spring-boot:
+        patterns:
+          - "org.springframework.boot*"
+      jjwt:
+        patterns:
+          - "io.jsonwebtoken*"
+      maven-minor-patch:
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - "org.springframework.boot*"
+          - "io.jsonwebtoken*"
+    ignore:
+      # Stay on the JDK 25 / Spring Boot 4 line; major bumps are handled manually
+      - dependency-name: "org.springframework.boot:spring-boot-starter-parent"
+        update-types: [ "version-update:semver-major" ]
+
+  # GitHub Actions used by the CI workflow
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: '21:00'
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
